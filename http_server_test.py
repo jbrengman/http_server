@@ -5,29 +5,13 @@ import http_server
 
 class RequestAndSplitTests(unittest.TestCase):
 
-    def test_get_request(self):
+    def test_process_message(self):
         msg = 'GET /directory/file.html HTTP/1.1\r\ntextthat\r\ndoesntmatter'
-        expected = 'GET /directory/file.html HTTP/1.1'
-        result = http_server.get_request(msg)
-        self.assertEqual(expected, result)
-
-    def test_split_request(self):
-        request = 'GET /directory/file.html HTTP/1.1'
-        expected = ['GET', '/directory/file.html', 'HTTP/1.1']
-        result = http_server.split_request(request)
-        self.assertEqual(expected, result)
-
-    def test_get_method(self):
-        lst = ['GET', '/directory/file.html', 'HTTP/1.1']
-        expected = 'GET'
-        result = http_server.get_method(lst)
-        self.assertEqual(expected, result)
-
-    def test_get_uri(self):
-        lst = ['GET', '/directory/file.html', 'HTTP/1.1']
-        expected = '/directory/file.html'
-        result = http_server.get_uri(lst)
-        self.assertEqual(expected, result)
+        expected_method = 'GET'
+        expected_uri = '/directory/file.html'
+        result_method, result_uri = http_server.process_request(msg)
+        self.assertEqual(expected_method, result_method)
+        self.assertEqual(expected_uri, result_uri)
 
 
 class MethodTests(unittest.TestCase):
@@ -62,7 +46,7 @@ class MethodTests(unittest.TestCase):
 class URIAndMimetypeTests(unittest.TestCase):
 
     def setUp(self):
-        self.rootpath = '/home/jordan/webroot'
+        self.rootpath = os.getcwd() + '/webroot'
         self.textfile = '/sample.txt'
         self.pngfile = '/images/sample_1.png'
         self.jpgfile = '/images/JPEG_example.jpg'

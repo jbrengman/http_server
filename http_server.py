@@ -10,24 +10,24 @@ def main():
     while (True):
         try:
             connection, address = s.accept()
-            receive(connection)
+            message = receive(connection)
+            handle(message, connection)
         finally:
             connection.close()
 
 
 def receive(connection):
-    message = connection.recv(1024)
-    if (message):
-        handle(message, connection)
-    if (not message):
-        return
+    message = ''
+    while True:
+        buffer = connection.recv(1024)
+        if (buffer):
+            message += buffer
+        if (not buffer):
+            return message
 
 
 def handle(message, connection):
-    request = get_request(message)
-    request_split = split_request(request)
-    method = get_method(request_split)
-    uri = get_uri(request_split)
+    method, uri = process_request(message)
     try:
         check_method(method)
     except ValueError:
@@ -45,20 +45,12 @@ def handle(message, connection):
             send_response(response, connection)
 
 
-def get_request(message):
-    return message.split('\r\n')[0]
-
-
-def split_request(r):
-    return r.split(' ')
-
-
-def get_method(r):
-    return r[0]
-
-
-def get_uri(r):
-    return r[1]
+def process_request(message):
+    first_line = message.split('\r\n')[0]
+    split = first_line.split(' ')
+    method = split[0]
+    uri = split[1]
+    return method, uri
 
 
 def check_method(m):
@@ -69,7 +61,7 @@ def check_method(m):
 
 
 def get_content(uri):
-    path = '/home/jordan/webroot' + uri
+    path = os.getcwd() + '/webroot' + uri
     if (os.path.isdir(path)):
         content = '\r\n'.join(os.listdir(path))
         mimetype = '\r\nContent-Type: text/plain'
